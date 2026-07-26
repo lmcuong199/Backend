@@ -1,3 +1,9 @@
+# how to run in terminal
+# E.g: python task.py mark-done 3
+# sys.argv[0]: the script name ("task.py")
+# sys.argv[1]: the command ("mark-done")
+# sys.argv[2]: the argument to the command ("3") 
+
 import json
 import sys
 import os
@@ -34,6 +40,25 @@ def add_task(description):
     save_tasks(tasks)
     print(f"Task added successfully (ID: {new_id})")
 
+def mark_done (tasks):
+    tasks = load_tasks()
+    found = False
+    for task in tasks:
+        if task["id"] == int(sys.argv[2]):
+            task["status"] = "done"
+            found = True
+
+    save_tasks(tasks)
+    if (found == False):
+        print(f"No ID available.")
+    else:
+        print(f"Tasks successfully updated.")
+
+# def list_tasks(tasks, description, status):
+#    print(f"ID:")
+#    print(f"Description:")    
+#    print(f"Status": {}")
+
 def main():
     if len(sys.argv) < 3:
         print("Usage: python task.py add [description]")
@@ -43,8 +68,11 @@ def main():
     
     if command == "add":
         add_task(sys.argv[2])
+    elif command == "mark-done":
+        mark_done(sys.argv[2])
     else:
         print("Unknown command.")
+    
 
 if __name__ == "__main__":
     main()
