@@ -1,8 +1,8 @@
 # Task Tracker CLI
 
-A command line task tracker that stores tasks in a local JSON file.
+https://roadmap.sh/projects/task-tracker
 
-Project page: https://roadmap.sh/projects/task-tracker
+A command line task tracker that stores tasks in a local JSON file.
 
 Tasks are kept in `tasks.json`, created automatically on first use. No external dependencies —
 standard library only.
