@@ -8,6 +8,11 @@ services:
     restart: unless-stopped
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1})"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   api:
     # build this one from a Dockerfile in this folder
