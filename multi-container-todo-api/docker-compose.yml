@@ -15,6 +15,7 @@ services:
       retries: 10
 
   api:
+    image: lmcuong199/todo-api:latest
     # build this one from a Dockerfile in this folder
     build: .
     restart: unless-stopped
