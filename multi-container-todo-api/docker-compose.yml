@@ -1,0 +1,28 @@
+# a service name becomes a hostname
+services:
+  mongo:
+    # image means "don't build anything, pull this ready-made image"
+    image: mongo:7
+    # if the container stops unexpectedly, restart it
+    # unless-stopped means "always restart, except when I stopped it deliberately"
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+
+  api:
+    # build this one from a Dockerfile in this folder
+    build: .
+    restart: unless-stopped
+    ports:
+      # "HOST:CONTAINER". Left is the port on Win, right is inside the container. Quote it
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - MONGO_URL=mongodb://mongo:27017/todos
+    depends_on:
+      - mongo
+
+# any named volume used above must also be declared here at thetop level. 
+# the empty value means "default settings". It looks redundant; compose requires it
+volumes:
+  mongo-data:
