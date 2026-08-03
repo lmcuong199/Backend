@@ -25,7 +25,8 @@ services:
       - PORT=3000
       - MONGO_URL=mongodb://mongo:27017/todos
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
 
 # any named volume used above must also be declared here at thetop level. 
 # the empty value means "default settings". It looks redundant; compose requires it
