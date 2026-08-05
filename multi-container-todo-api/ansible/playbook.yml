@@ -1,0 +1,106 @@
+---
+# the - makes this a list item - a playbook is a list of plays, and you have one
+- name: Deploy the todo API
+  # hosts: matches the group in our inventory
+  hosts: todo_servers
+  # gather_facts collects information about the target (OS, IP, memory) before starting; modules use it to adapt
+  gather_facts: true
+
+  # defines app_dir once, referenced as {{ app_dir }}
+  vars:
+    app_dir: /opt/todo-api
+  
+  # task 1-2: install Docker
+  # task 3-5: start the deamon
+  # task 6-7: put the files there
+  # task 8-9: run it
+  # task 10: verify
+  tasks:
+    # task 1:
+    - name: Update the apt package index
+      ansible.builtin.apt:
+        update_cache: yes
+        # skips apt update if it ran within the hour - a small speed-up on repeated runs
+        cache_valid_time: 3600
+
+    # task 2:
+    - name: Install Docker and the Compose plugin
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-compose-v2
+        # declarative bit
+        state: present
+
+    # task 3:
+    - name: Check whether the Docker daemon is already running
+      ansible.builtin.command: pgrep dockerd
+      # saves the result into a variable for later tasks
+      register: dockerd_status
+      # pgrep exits non-zero when it finds nothing, which Ansible would treat as failure
+      failed_when: false
+      # checking sth changes nothing, so don't report it as a change
+      changed_when: false
+
+    # task 4:
+    - name: Start the Docker daemon
+      ansible.builtin.shell: dockerd >> /var/log/dockerd.log 2>&1
+      # async: 3600 + poll: 0 - fire and forget. dockerd never exits, so without this Ansible would wait forever
+      async: 3600
+      poll: 0
+      when: dockerd_status.rc != 0
+
+    # task 5:
+    - name: Wait for the Docker daemon to accept connections
+      ansible.builtin.command: docker info
+      register: docker_info
+      # until + retries + delay = retry loop: try docker info up to 20 times, 3 sec apart, until it succeeds
+      until: docker_info.rc == 0
+      retries: 20
+      delay: 3
+      changed_when: false
+
+    # task 6:
+    - name: Create the application directory
+      ansible.builtin.file:
+        path: "{{ app_dir }}"
+        state: directory
+        mode: "0755"
+
+    # task 7:
+    - name: Copy the production compose file
+      ansible.builtin.copy:
+        # src is relative to the playbook on your machine
+        src: files/docker-compose.prod.yml
+        # dest is on the server
+        dest: "{{ app_dir }}/docker-compose.yml"
+        mode: "0644"
+
+    # task 8:
+    - name: Pull the images from Docker Hub
+      ansible.builtin.command: docker compose pull
+      args:
+        # chdir is "cd here first"
+        chdir: "{{ app_dir }}"
+      changed_when: true
+
+    # task 9:
+    - name: Start the application
+      ansible.builtin.command: docker compose up -d
+      args:
+        chdir: "{{ app_dir }}"
+      register: compose_up
+      changed_when: true
+
+    # task 10: the playbook tests its own work
+    - name: Wait for the API to respond
+      ansible.builtin.uri:
+        # localhost here means ON THE SERVER - every task runs there
+        # It hits yout /health endpoint until it returns 200, 
+        # so a successful run means the app is genuinely serving traffic, not merely that containers were created
+        url: http://localhost:3000/health
+        status_code: 200
+      register: health
+      until: health.status == 200
+      retries: 20
+      delay: 3

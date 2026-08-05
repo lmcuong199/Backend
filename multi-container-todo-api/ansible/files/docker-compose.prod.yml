@@ -1,0 +1,27 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1})"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    # Pulls image from Docker Hub rather than from source build: . like in docker-compose.yml
+    image: lmcuong199/todo-api:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - MONGO_URL=mongodb://mongo:27017/todos
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongo-data:
