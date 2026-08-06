@@ -52,7 +52,7 @@ resource "docker_container" "server" {
   }
 
   ports {
-    internal = 3000
+    internal = 80
     external = var.app_port
   }
 
