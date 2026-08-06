@@ -35,7 +35,7 @@ const Todo = mongoose.model('Todo', todoSchema);
 // ---------- 5. ROUTES ----------
 // async on every handler
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ status: 'ok', version: 2 });
 });
 
 // async(): means this function contains waiting
