@@ -45,3 +45,18 @@ a security risk on public repositories.
 
 Moving to a real cloud server requires changing the Terraform provider
 block and the Ansible inventory host. The playbook itself is unchanged.
+
+## Running it
+
+**Local development**
+    docker compose up -d --build
+    # API via Nginx at http://localhost
+
+**Provision and deploy the simulated server**
+    cd terraform && terraform apply
+    wsl -d Ubuntu -- bash -lc "cd /mnt/c/.../ansible && ansible-playbook -i inventory.ini playbook.yml"
+    # API at http://localhost:8080
+
+**Tear down**
+    docker compose down          # local (add -v to drop data)
+    cd terraform && terraform destroy
