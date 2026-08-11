@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import date
+import argparse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 EXPENSES_FILE = os.path.join(HERE, "expenses.json")
@@ -38,3 +39,27 @@ def add_expense(description, amount):
     expenses.append(expense)
     save_expenses(expenses)
     return expense
+
+def cmd_add(args):
+    expense = add_expense(args.description, args.amount)
+    print(f"Expense added successfully (ID: {expense['id']})")
+
+def build_parser():
+    parser = argparse.ArgumentParser(prog="expense-tracker")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    add = subparsers.add_parser("add", help="add a new expense")
+    add.add_argument("--description", required=True)
+    add.add_argument("--amount", type=float, required=True)
+    add.set_defaults(func=cmd_add)
+
+    return parser
+
+def main():
+    parser = build_parser()
+    args = parser.parse_args()
+    args.func(args)
+
+# Only run main() if this file was launched directly
+if __name__ == "__main__":
+    main()
