@@ -102,6 +102,46 @@ def cmd_summary(args):
         total += expense['amount']
     print(f"{label}: {money(total)}")
 
+def find_expense(expenses, expense_id):
+    for expense in expenses:
+        if expense['id'] == expense_id:
+            return expense
+    return None
+
+def cmd_delete(args):
+    expenses = load_expenses()
+    expense = find_expense(expenses, args.id)
+    if expense is None:
+        print(f"Error: no expense found with ID {args.id}")
+        return 1
+    expenses.remove(expense)
+    save_expenses(expenses)       
+    print("Expense deleted successfully")
+    return 0
+
+def cmd_update(args):
+    expenses = load_expenses()
+    expense = find_expense(expenses, args.id)
+    if expense is None:
+        print(f"Error: no expense found with ID {args.id}")
+        return 1
+
+    # nothing to change: say so rather than reporting a silent success
+    if args.description is None and args.amount is None:
+        print("Error: nothing to update. Pass --description or --amount.")
+        return 1
+
+    if args.description is not None:
+        expense['description'] = args.description
+    if args.amount is not None:
+        expense['amount'] = args.amount
+
+    # expense IS the dict inside expenses, so the list is already updated
+    save_expenses(expenses)
+    print(f"Expense updated successfully (ID: {expense['id']})")
+    return 0
+
+
 def build_parser():
     # prog is the name shown in help/error messages 
     parser = argparse.ArgumentParser(prog="expense-tracker")
@@ -113,14 +153,25 @@ def build_parser():
     add = subparsers.add_parser("add", help="add a new expense")
     listing = subparsers.add_parser("list", help="list all expenses")
     summary = subparsers.add_parser("summary", help="summary of all expenses")
+    delete = subparsers.add_parser("delete", help="delete an expense")
+    update = subparsers.add_parser("update", help="update an expense")
+
 
     add.add_argument("--description", required=True)
     add.add_argument("--amount", type=positive_amount, required=True)
     summary.add_argument("--month", type=valid_month)
+    delete.add_argument("--id", type=int, required=True)
+    update.add_argument("--id", type=int, required=True)
+    update.add_argument("--description")
+    update.add_argument("--amount", type=positive_amount)
+
     
     add.set_defaults(func=cmd_add)
     listing.set_defaults(func=cmd_list)
     summary.set_defaults(func=cmd_summary)
+    delete.set_defaults(func=cmd_delete)
+    update.set_defaults(func=cmd_update)
+
 
     return parser
 
