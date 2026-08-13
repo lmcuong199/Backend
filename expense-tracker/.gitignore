@@ -1,0 +1,4 @@
+__pycache__/
+expenses.json
+budgets.json
+*.csv
