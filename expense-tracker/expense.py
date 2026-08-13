@@ -228,7 +228,9 @@ def cmd_export(args):
 
     # newline="" is required on Windows or every other line comes out blank
     with open(args.file, "w", newline="", encoding="utf-8") as f:
+        # DictWriter writes dictionaries as CSV rows
         writer = csv.DictWriter(f, fieldnames=columns)
+        # writes the very first line of the file - the column names
         writer.writeheader()
         for expense in expenses:
             writer.writerow({
