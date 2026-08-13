@@ -16,5 +16,19 @@
     "date": "2026-08-12",
     "description": "Taxi",
     "amount": 12.0
+  },
+  {
+    "id": 4,
+    "date": "2026-08-13",
+    "description": "Pizza",
+    "amount": 15.0,
+    "category": "Food"
+  },
+  {
+    "id": 5,
+    "date": "2026-08-13",
+    "description": "Bus pass",
+    "amount": 30.0,
+    "category": "Transport"
   }
 ]

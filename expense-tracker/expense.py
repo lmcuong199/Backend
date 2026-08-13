@@ -28,14 +28,15 @@ def next_id(expenses):
             biggest = expense["id"]
     return biggest+1
 
-def add_expense(description, amount):
+def add_expense(description, amount, category):
     expenses = load_expenses()
     expense = {
         "id": next_id(expenses),
         # isoformat(): year-month-day
         "date": date.today().isoformat(),
         "description": description,
-        "amount": amount
+        "amount": amount,
+        "category": category
     }
     expenses.append(expense)
     save_expenses(expenses)
@@ -45,7 +46,7 @@ def add_expense(description, amount):
 # take the CLI's format (a Namespace) and converts it into the format your logic wants
 def cmd_add(args):
     # args.description -> 'coffee',  args.amount -> 4.5
-    expense = add_expense(args.description, args.amount)
+    expense = add_expense(args.description, args.amount, args.category)
     # expense -> {'id': 3, 'date': '2026-08-12', 'description': 'coffee', 'amount': 4.5}
     print(f"Expense added successfully (ID: {expense['id']})")
     # prints: Expense added successfully (ID: 3)
@@ -59,13 +60,22 @@ def money(amount):
 
 def cmd_list(args):
     expenses = load_expenses()
+
+    if args.category is not None:
+        # .get(key, fallback) returns the fallback only when the key is missing,
+        # so rows added before categories existed count as "General"
+        expenses = [e for e in expenses
+                    if e.get('category', 'General').lower() == args.category.lower()]
+
     if not expenses:
         print("No expenses to show.")
         return
 
-    print(f"{'ID':<4} {'Date':<12} {'Description':<36} {'Amount':>10}")
+    print(f"{'ID':<4} {'Date':<12} {'Category':<14} {'Description':<30} {'Amount':>10}")
     for expense in expenses:
-        print(f"{expense['id']:<4} {expense['date']:<12} {expense['description']:<36} {money(expense['amount']):>10}")
+        print(f"{expense['id']:<4} {expense['date']:<12} "
+              f"{expense.get('category', 'General'):<14} "
+              f"{expense['description']:<30} {money(expense['amount']):>10}")
 
 def valid_month(value):
     try:
@@ -98,6 +108,11 @@ def cmd_summary(args):
         expenses = [e for e in expenses if e['date'].startswith(prefix)]
         label += f" for {calendar.month_name[args.month]}"
 
+    if args.category is not None:
+        expenses = [e for e in expenses
+                    if e.get('category', 'General').lower() == args.category.lower()]
+        label += f" in {args.category}"
+
     for expense in expenses:
         total += expense['amount']
     print(f"{label}: {money(total)}")
@@ -127,7 +142,7 @@ def cmd_update(args):
         return 1
 
     # nothing to change: say so rather than reporting a silent success
-    if args.description is None and args.amount is None:
+    if args.description is None and args.amount is None and args.category is None:
         print("Error: nothing to update. Pass --description or --amount.")
         return 1
 
@@ -135,6 +150,8 @@ def cmd_update(args):
         expense['description'] = args.description
     if args.amount is not None:
         expense['amount'] = args.amount
+    if args.category is not None:
+        expense['category'] = args.category
 
     # expense IS the dict inside expenses, so the list is already updated
     save_expenses(expenses)
@@ -159,11 +176,15 @@ def build_parser():
 
     add.add_argument("--description", required=True)
     add.add_argument("--amount", type=positive_amount, required=True)
+    add.add_argument("--category", default="General")
+    listing.add_argument("--category")
     summary.add_argument("--month", type=valid_month)
+    summary.add_argument("--category")
     delete.add_argument("--id", type=int, required=True)
     update.add_argument("--id", type=int, required=True)
     update.add_argument("--description")
     update.add_argument("--amount", type=positive_amount)
+    update.add_argument("--category")
 
     
     add.set_defaults(func=cmd_add)
