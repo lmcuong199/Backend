@@ -1,0 +1,29 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic[email]
+pyjwt
+bcrypt
+python-dotenv
+pytest
+httpx
+
+
+# fastapi:           web framework. 
+#                    Turns Python funcs into HTTP endpoints and auto-generates the OpenAPI docs the prj requires
+
+# uvicorn[standard]: the actual web server that runs FastAPI. 
+#                    FastAPI defines the app; uvicorn listens on a port
+
+# sqlalchemy:        the ORM - lets you write db.query(Workout) instead of raw SQL strings
+
+# pydantic[email]:   validates incoming JSON. 
+#                    The [email] extra adds read email-format checking
+
+# pyjwt:             creates and verifies the JWT tokens for login
+
+# bcrypt:            hashes passwords so the database never stores a real one
+
+# python-dotenv:     reads secrets (like your JWT signing key) from a .env file instead of hardcoding them
+
+# pytest, httpx:     the testing requirement - httpx lets tests call your API without starting a real server   
