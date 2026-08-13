@@ -5,7 +5,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from app.database import Base
+from app.database import Base, UtcDateTime
 
 
 def utcnow():
@@ -26,7 +26,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     # default=utcnow: passes the func itself, not utcnow()
     # SQLAlchemy calls it at insert time, so each row gets its own timestamp
-    created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+    created_at = Column(UtcDateTime, default=utcnow, nullable=False)
     # relationship(...) is a pure Python convenience with no SQL column behind it
     # It gives you workout.user and user.workouts so you can navigate objects instead of writing joins by hand
     # back_populates links the 2 sides so they stay sync in memory
@@ -53,10 +53,10 @@ class Workout(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
                      nullable=False, index=True)
     name = Column(String, nullable=False)
-    scheduled_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    scheduled_at = Column(UtcDateTime, nullable=True, index=True)
     status = Column(String, nullable=False, default="pending", index=True)
     comment = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)
+    created_at = Column(UtcDateTime, default=utcnow, nullable=False)
 
     user = relationship("User", back_populates="workouts")
     entries = relationship(

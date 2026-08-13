@@ -4,6 +4,35 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
+from datetime import timezone
+
+from sqlalchemy import DateTime, TypeDecorator
+
+
+class UtcDateTime(TypeDecorator):
+    """Always store UTC; always hand back a timezone-aware UTC datetime.
+
+    SQLite silently drops timezone offsets, so we convert to UTC before
+    writing and re-attach UTC when reading.
+    """
+
+    impl = DateTime
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        """Python -> database."""
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)   # no offset given: assume UTC
+        return value.astimezone(timezone.utc).replace(tzinfo=None)
+
+    def process_result_value(self, value, dialect):
+        """Database -> Python."""
+        if value is None:
+            return None
+        return value.replace(tzinfo=timezone.utc)
+
 
 # reads a .env file into environment variables
 load_dotenv()
