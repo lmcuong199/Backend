@@ -28,6 +28,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 # bcrypt 5.x raises ValueError on anything longer, so we cut it ourselves
 BCRYPT_MAX_BYTES = 72
+# 12 is the secure default; tests lower it to 4 so the suite runs fast
+BCRYPT_ROUNDS = int(os.getenv("BCRYPT_ROUNDS", "12"))
+
 
 # takes a string and returns a string
 def hash_password(plain_password: str) -> str:
@@ -36,7 +39,7 @@ def hash_password(plain_password: str) -> str:
     # this is why 2 users with the identical password get completely different hashes
     # and why an attacker can't precompute a table of common-password hashes
     # the salt is stored inside the hash string itself, which is how checkpw knows what to use later
-    return bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode("utf-8")
+    return bcrypt.hashpw(password_bytes, bcrypt.gensalt(rounds=BCRYPT_ROUNDS)).decode("utf-8")
 
 # this func re-hashes the attempt with the stored salt and compares 
 # if your database leaks, the passwords aren't in it
