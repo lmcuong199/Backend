@@ -104,3 +104,42 @@ class WorkoutOut(BaseModel):
     comment: str | None
     created_at: datetime
     entries: list[WorkoutEntryOut]
+
+class StatusBreakdown(BaseModel):
+    pending: int = 0
+    completed: int = 0
+    cancelled: int = 0
+
+class SummaryReport(BaseModel):
+    total_workouts: int
+    by_status: StatusBreakdown
+    total_sets: int
+    total_reps: int
+    total_volume: float
+    first_workout_at: datetime | None
+    last_workout_at: datetime | None
+
+class ExerciseStat(BaseModel):
+    exercise_id: int
+    exercise_name: str
+    times_performed: int
+    total_sets: int
+    total_reps: int
+    total_volume: float
+    max_weight: float | None
+
+class ProgressPoint(BaseModel):
+    workout_id: int
+    workout_name: str
+    performed_at: datetime | None
+    sets: int
+    reps: int
+    weight: float | None
+    volume: float
+
+class ProgressReport(BaseModel):
+    exercise_id: int
+    exercise_name: str
+    points: list[ProgressPoint]
+    max_weight: float | None
+    volume_change_pct: float | None
